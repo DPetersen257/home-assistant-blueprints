@@ -1,0 +1,57 @@
+blueprint:
+  name: Climate Control Based on Window Status
+  description: Automatically turns off the climate device when any selected window is open and restores it when all are closed.
+  domain: automation
+  input:
+    climate_device:
+      name: Climate Device
+      description: Select the climate device you want to control.
+      selector:
+        entity:
+          domain: climate
+
+    window_sensors:
+      name: Window Sensors
+      description: Select the window sensors to monitor.
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: true
+
+    previous_state_helper:
+      name: Previous State Helper
+      description: Select the helper to store the climate device's previous state.
+      selector:
+        entity:
+          domain: input_text
+
+trigger:
+  - platform: state
+    entity_id: !input 'window_sensors'
+
+action:
+  - variables:
+      window_open: "{{ expand(trigger.entity_id) | selectattr('state', 'eq', 'on') | list | count > 0 }}"
+      climate_entity: !input 'climate_device'
+      state_helper: !input 'previous_state_helper'
+  - choose:
+      - conditions:
+          - "{{ window_open }}"
+        sequence:
+          - service: input_text.set_value
+            target:
+              entity_id: "{{ state_helper }}"
+            data:
+              value: "{{ states(climate_entity) }}"
+          - service: climate.turn_off
+            target:
+              entity_id: "{{ climate_entity }}"
+    default:
+      - service: climate.turn_on
+        target:
+          entity_id: "{{ climate_entity }}"
+      - service: climate.set_hvac_mode
+        target:
+          entity_id: "{{ climate_entity }}"
+        data:
+          hvac_mode: "{{ states(state_helper) }}"
