@@ -1,6 +1,6 @@
 blueprint:
-  name: Climate Control Based on Window Status
-  description: Automatically turns off the climate device when any selected window is open and restores it when all are closed.
+  name: Disable HVAC When Windows Open
+  description: Automatically turns off the climate device when any selected windows are open and restores it when all are closed.
   domain: automation
   input:
     climate_device:
