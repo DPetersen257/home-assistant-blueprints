@@ -47,6 +47,7 @@ action:
 - choose:
   - conditions:
     - '{{ window_open }}'
+    - "{{ states(climate_entity) != 'off' }}"
     sequence:
     - service: input_text.set_value
       target:
